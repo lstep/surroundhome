@@ -12,3 +12,5 @@ SurroundHome
 type of input and do something with it according to rules defined (in a DSL?), for example run the
 service XYZ (example obs-new-discoveries).
 - Make more inputs possible, not just the REST interface, but also the CLI, the web interface, and clipboard.
+- Implement some optional authentication (maybe using a token).
+- Generate packages for each service (DMG, DEB,etc.)
