@@ -1,9 +1,9 @@
-# New Discoveries API Documentation
+# OBS API Documentation
 
 This service listens for NATS messages to add new discoveries/links to your Obsidian daily notes.
 
 ## Base Configuration
-- NATS Server: `nats://ailocal:4222`
+- NATS Server: `nats://localhost:4222`
 - Subscription Topic: `POST:.memorize`
 
 ## Adding a New Discovery
@@ -51,3 +51,16 @@ msg, _ := nc.Request("POST:.memorize", []byte(payload), time.Second)
 - Failed connection to Obsidian API will result in an error
 
 Note: The service requires a running Obsidian instance with the Local REST API plugin configured with the appropriate authentication key.
+
+### Testing from the RESTProxy API interface
+The RESTProxy API interface can be used to test the service. The service is listening on port 8080 by default.
+
+To test the service, you can use the following cURL command:
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"content": "https://example.com"}' http://localhost:8080/memorize
+```
+
+or you can use httpie:
+```bash
+http POST http://localhost:8080/memorize content="https://example.com"
+```
