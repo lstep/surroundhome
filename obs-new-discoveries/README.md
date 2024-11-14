@@ -64,3 +64,7 @@ or you can use httpie:
 ```bash
 http POST http://localhost:8080/memorize content="https://example.com"
 ```
+
+# TODO
+- Implement an optional generation of the description of the content of the URL using an LLM after converting the
+page to markdown (https://github.com/JohannesKaufmann/html-to-markdown for example)

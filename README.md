@@ -14,3 +14,5 @@ service XYZ (example obs-new-discoveries).
 - Make more inputs possible, not just the REST interface, but also the CLI, the web interface, and clipboard.
 - Implement some optional authentication (maybe using a token).
 - Generate packages for each service (DMG, DEB,etc.)
+- Reimplement the proxy service with a homemade solution, as the current package.
+(github.com/aliheydarabadii/nats-proxy) does not allow responses other than OK
