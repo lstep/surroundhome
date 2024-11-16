@@ -21,7 +21,7 @@ func initConfig() {
 	// Set up command line flags
 	pflag.String("obsidian-api-url", "http://localhost:27123", "Obsidian API URL")
 	pflag.String(authKey, "", "Authentication key for Obsidian API")
-	pflag.String("nats-address", "nats://ailocal:4222", "NATS server address")
+	pflag.String("nats-address", "nats://localhost:4222", "NATS server address")
 	pflag.Parse()
 
 	// Bind flags to viper
@@ -37,15 +37,27 @@ func initConfig() {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 
+	fmt.Printf("Looking for config file in: %s\n", viper.ConfigFileUsed())
+
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			fmt.Printf("Error reading config file: %v\n", err)
+		} else {
+			fmt.Printf("Config file not found: %v\n", err)
 		}
+	} else {
+		fmt.Printf("Using config file: %s\n", viper.ConfigFileUsed())
 	}
+
+	// Print current configuration
+	fmt.Printf("Current configuration:\n")
+	fmt.Printf("obsidian-api-url: %s\n", viper.GetString("obsidian-api-url"))
+	fmt.Printf("nats-address: %s\n", viper.GetString("nats-address"))
+	fmt.Printf("auth-key: %s\n", viper.GetString(authKey))
 
 	// Set default values
 	viper.SetDefault("obsidian-api-url", "http://localhost:27123")
-	viper.SetDefault("nats-address", "nats://ailocal:4222")
+	viper.SetDefault("nats-address", "nats://localhost:4222")
 }
 
 func main() {
