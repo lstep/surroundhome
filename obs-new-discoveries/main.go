@@ -28,28 +28,34 @@ func main() {
 	nc.Subscribe("POST:.memorize", func(msg *nats.Msg) {
 		fmt.Printf("Received: %#v\n", msg.Subject)
 
+		fmt.Printf("Received message data: %s\n", string(msg.Data))
+
 		// Retrieve the content from the message
 		var data struct {
-			Content string `json:"content"`
+			URL      string   `json:"url"`
+			Title    string   `json:"title"`
+			Tags     []string `json:"tags"`
+			Selected string   `json:"selected"`
 		}
+
 		err := json.Unmarshal(msg.Data, &data)
 		if err != nil {
 			fmt.Printf("Error decoding JSON: %v\n", err)
 			return
 		}
 
-		if data.Content == "" {
-			fmt.Printf("Empty content!\n")
-			msg.Respond([]byte("Error: Content is empty"))
+		if data.URL == "" {
+			fmt.Printf("Empty url!\n")
+			msg.Respond([]byte("Error: URL is empty"))
 			return
 		}
 
-		content := data.Content
+		url := data.URL
 
-		fmt.Printf("Content: %s\n", content)
+		fmt.Printf("URL: %s title: %s tags: %v text: %s\n", url, data.Title, data.Tags, data.Selected)
 
 		// Publish to Obsidian Daily Note
-		err = publishToObsidianDailyNote(content)
+		err = publishToObsidianDailyNote(url, data.Tags, data.Selected)
 		if err != nil {
 			fmt.Printf("Error publishing to Obsidian: %v\n", err)
 		}
@@ -60,7 +66,7 @@ func main() {
 	select {}
 }
 
-func publishToObsidianDailyNote(content string) error {
+func publishToObsidianDailyNote(content string, tags []string, selected string) error {
 	// Get today's date for the Daily Note
 	//today := time.Now().Format("2006-01-02")
 
@@ -74,6 +80,12 @@ func publishToObsidianDailyNote(content string) error {
 		title = content
 	}
 	content = fmt.Sprintf("- NewDiscovery:: [%s](%s)", title, content)
+	if len(tags) > 0 {
+		content += " #" + strings.Join(tags, " #")
+	}
+	if len(selected) > 0 {
+		content += "\n     - " + selected
+	}
 
 	payload := strings.NewReader(content)
 
