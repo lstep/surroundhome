@@ -9,15 +9,49 @@ import (
 	"strings"
 
 	"github.com/nats-io/nats.go"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 const (
-	obsidianAPIURL = "http://localhost:27123"
-	authKey        = "Bearer 40800f7c8a05343d8fdd8c5d610d2f3fa95d58c72a6b68fe52bbb209ff90bfd5"
+	authKey = "auth-key"
 )
 
+func initConfig() {
+	// Set up command line flags
+	pflag.String("obsidian-api-url", "http://localhost:27123", "Obsidian API URL")
+	pflag.String(authKey, "", "Authentication key for Obsidian API")
+	pflag.String("nats-address", "nats://ailocal:4222", "NATS server address")
+	pflag.Parse()
+
+	// Bind flags to viper
+	viper.BindPFlags(pflag.CommandLine)
+
+	// Set up environment variables
+	viper.SetEnvPrefix("OBS")
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	// Set up config file
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			fmt.Printf("Error reading config file: %v\n", err)
+		}
+	}
+
+	// Set default values
+	viper.SetDefault("obsidian-api-url", "http://localhost:27123")
+	viper.SetDefault("nats-address", "nats://ailocal:4222")
+}
+
 func main() {
-	nc, err := nats.Connect("nats://ailocal:4222")
+	initConfig()
+
+	nc, err := nats.Connect(viper.GetString("nats-address"))
 	if err != nil {
 		panic(err)
 	}
@@ -71,7 +105,7 @@ func publishToObsidianDailyNote(content string, tags []string, selected string) 
 	//today := time.Now().Format("2006-01-02")
 
 	// Construct the API request
-	url := fmt.Sprintf("%s/periodic/daily/", obsidianAPIURL)
+	url := viper.GetString("obsidian-api-url") + "/periodic/daily/"
 
 	// build content
 	title, err := getTitleFromURL(content)
@@ -96,7 +130,7 @@ func publishToObsidianDailyNote(content string, tags []string, selected string) 
 
 	// Add headers
 	req.Header.Add("Content-Type", "text/markdown")
-	req.Header.Add("Authorization", authKey)
+	req.Header.Add("Authorization", viper.GetString(authKey))
 	req.Header.Add("Content-Insertion-Position", "end")
 	req.Header.Add("Heading", "::New discoveries")
 	req.Header.Add("Target", "::New discoveries")
