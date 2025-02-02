@@ -55,6 +55,13 @@ Contributions are welcome! Each service should include:
 - Systemd service file
 - Dockerfile for containerized deployment
 
+## Thanks
+
+- [NATS](https://nats.io/) for providing a reliable and scalable messaging system
+- [Obsidian](https://obsidian.md/) for providing a powerful note-taking application
+- [Go](https://golang.org/) for providing a fast and efficient programming language
+- [Kaustav Das Modak](https://github.com/kaustavdasmodak) for providing a detailed and comprehensive guide on Ultra-lightweight NATS-based modular app framework in Go (https://kaustavdm.medium.com/ultra-lightweight-nats-based-modular-app-framework-in-go-860d210f46de)
+
 ## License
 
 See the [LICENSE](LICENSE) file for details.
