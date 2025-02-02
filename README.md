@@ -26,7 +26,6 @@ A service that integrates with Obsidian note-taking application to automatically
 
 ### Prerequisites
 
-- NATS server
 - Any specific requirements for individual services (e.g., Obsidian for obsidian-new-discoveries)
 
 ### Installation
