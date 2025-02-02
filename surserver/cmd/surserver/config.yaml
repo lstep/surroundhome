@@ -1,0 +1,13 @@
+name: "surserver"
+nats:
+  embedded: true
+  private: false
+  logging: true
+  url: "nats://127.0.0.1:7222"
+http:
+  port: 8080
+modules:
+  example:
+    enabled: true
+    config:
+      key: "value"

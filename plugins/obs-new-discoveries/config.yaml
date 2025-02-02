@@ -1,0 +1,3 @@
+obsidian-api-url: "http://localhost:27123"
+auth-key: "Bearer 40800f7c8a05343d8fdd8c5d610d2f3fa95d58c72a6b68fe52bbb209ff90bfd5"
+nats-address: "nats://ailocal:4222"
