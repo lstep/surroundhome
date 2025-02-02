@@ -11,6 +11,8 @@ SurroundHome is designed to be a flexible and extensible home automation platfor
 ### REST Proxy Service
 A service that provides a REST API interface for interacting with the system. It acts as an entry point for HTTP-based integrations and forwards requests to appropriate services through NATS.
 
+## Plugins
+
 ### Obsidian New Discoveries Service
 A service that integrates with Obsidian note-taking application to automatically add new discoveries and links to your daily notes through NATS messages.
 
