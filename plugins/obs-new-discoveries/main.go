@@ -37,7 +37,7 @@ func initConfig() {
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
 	// Set up config file
-	viper.SetConfigName("config")
+	viper.SetConfigName("obs-new-discoveries-config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 
