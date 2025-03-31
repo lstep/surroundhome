@@ -1,12 +1,15 @@
 .PHONY: all build test coverage clean plugins
 
+ LDFLAGS="-s -w"
+
+
+
 all: build plugins
 
 build:
-	cd surserver/cmd/surserver && go build -o ../../../dist/surserver
-	#-ldflags -X main.Version=$(git describe --tags --dirty --always --abbrev=12)
+	CGO_ENABLED=0 go build -ldflags $(LDFLAGS) -tags "osusergo,netgo", -o dist/surserver ./surserver/cmd/surserver
 	@mkdir -p dist
-	@cp surserver/cmd/surserver/config.yaml dist/
+	@cp surserver/cmd/surserver/config.yaml dist/surserver.yaml
 
 plugins:
 	@echo "Building plugins..."
