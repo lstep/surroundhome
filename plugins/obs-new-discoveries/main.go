@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	_ "embed" // Required when using go:embed directive
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,9 +15,15 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go"
+	"github.com/open2b/scriggo"
+	"github.com/open2b/scriggo/builtin"
+	"github.com/open2b/scriggo/native"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
+
+//go:embed templates/discovery.tmpl
+var discoveryTemplateFS []byte
 
 const (
 	authKey = "auth-key"
@@ -102,10 +110,11 @@ func handleMemorizeMessage(msg *nats.Msg) {
 
 	// Retrieve the content from the message
 	var data struct {
-		URL      string   `json:"url"`
-		Title    string   `json:"title"`
-		Tags     []string `json:"tags"`
-		Selected string   `json:"selected"`
+		URL         string   `json:"url"`
+		Title       string   `json:"title"`
+		Tags        []string `json:"tags"`
+		Selected    string   `json:"selected"`
+		Description string   `json:"description"`
 	}
 
 	err := json.Unmarshal(msg.Data, &data)
@@ -126,11 +135,12 @@ func handleMemorizeMessage(msg *nats.Msg) {
 		"url", url,
 		"title", data.Title,
 		"tags", data.Tags,
+		"description", data.Description,
 		"selected_text", data.Selected)
 
 	// Publish to Obsidian Daily Note
 	slog.Info("publishing to Obsidian Daily Note")
-	err = publishToObsidianDailyNote(url, data.Tags, data.Selected)
+	err = publishToObsidianDailyNote(url, data.Tags, data.Selected, data.Description)
 	if err != nil {
 		slog.Error("error publishing to Obsidian", "error", err)
 		errResp, _ := json.Marshal(map[string]string{"error": "error publishing to Obsidian"})
@@ -143,7 +153,7 @@ func handleMemorizeMessage(msg *nats.Msg) {
 	msg.Respond(resp)
 }
 
-func publishToObsidianDailyNote(content string, tags []string, selected string) error {
+func publishToObsidianDailyNote(content string, tags []string, selected string, description string) error {
 	// Create HTTP client with recommended parameters
 	client := &http.Client{
 		Timeout: 5 * time.Second,
@@ -165,21 +175,40 @@ func publishToObsidianDailyNote(content string, tags []string, selected string) 
 	// Construct the API request
 	url := viper.GetString("obsidian-api-url") + "/periodic/daily/"
 
-	// build content
+	// build content using Scriggo template
 	title, err := getTitleFromURL(content)
 	if err != nil {
 		slog.Error("failed to get title for URL", "url", content, "error", err)
 		title = content
 	}
-	content = fmt.Sprintf("- NewDiscovery:: [%s](%s)", title, content)
-	if len(tags) > 0 {
-		content += " #" + strings.Join(tags, " #")
-	}
-	if len(selected) > 0 {
-		content += "\n     - " + selected
+
+	// Parse and execute the template
+	fsys := scriggo.Files{"discovery.tmpl": discoveryTemplateFS}
+
+	// Prepare options with functions
+	opts := &scriggo.BuildOptions{
+		Globals: native.Declarations{
+			"join":        builtin.Join, // global function
+			"title":       &title,
+			"url":         &content,
+			"tags":        &tags,
+			"selected":    &selected,
+			"description": &description},
 	}
 
-	payload := strings.NewReader(content)
+	// Build the template
+	templ, err := scriggo.BuildTemplate(fsys, "discovery.tmpl", opts)
+	if err != nil {
+		return fmt.Errorf("error building template: %v", err)
+	}
+
+	var result bytes.Buffer
+	err = templ.Run(&result, nil, nil)
+	if err != nil {
+		return fmt.Errorf("error executing template: %v", err)
+	}
+
+	payload := strings.NewReader(result.String())
 
 	req, err := http.NewRequest(http.MethodPatch, url, payload)
 	if err != nil {
